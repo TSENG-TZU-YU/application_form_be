@@ -18,8 +18,8 @@ app.use(express.json());
 
 
 //申請表
-let application=require('./routers/application');
-app.use('/api/application',application);
+let application_get=require('./routers/application_get');
+app.use('/api/application_get',application_get);
 
 
 
