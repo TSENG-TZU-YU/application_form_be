@@ -10,8 +10,8 @@ router.post('/', async (req, res) => {
         let r = req.body;
         let arr = req.body.need;
         let [application] = await pool.execute(
-            `INSERT INTO application_form (case_number,user_id,handler_id,application_category_id,project_name,cycle_id ) VALUES (?,?,?,?,?,?)`,
-            [r.number, r.id, r.handler, r.category, r.name, r.cycle]
+            `INSERT INTO application_form (case_number,user,handler,application_category,project_name,cycle,status_id, create_time ) VALUES (?,?,?,?,?,?,?,?)`,
+            [r.number, r.id, r.handler, r.category, r.name, r.cycle, r.status, r.create_time]
         );
         for (let data of arr) {
             let [application_detail] = await pool.execute(
@@ -19,6 +19,7 @@ router.post('/', async (req, res) => {
                 [r.number, data.title, data.text]
             );
         }
+        console.log(application);
     } catch (err) {
         console.log(err);
     }
