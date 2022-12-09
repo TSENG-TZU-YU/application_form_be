@@ -37,9 +37,14 @@ app.use(
 let login = require('./routers/login');
 app.use('/api/login', login);
 
-//申請表
+//get使用者申請表
 let application_get = require('./routers/application_get');
 app.use('/api/application_get', application_get);
+
+
+//post使用者申請表
+let application_post = require('./routers/application_post');
+app.use('/api/application_post', application_post);
 
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
