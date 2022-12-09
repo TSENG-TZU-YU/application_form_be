@@ -8,34 +8,33 @@ const pool = require('../utils/db');
 router.post('/', async (req, res) => {
     try {
         let rb = req.body;
-        let [result] = await pool.execute('SELECT * FROM users WHERE applicant_unit=? && staff_code=? &&password=?', [
+        let [users] = await pool.execute('SELECT * FROM users WHERE applicant_unit=? && staff_code=? &&password=?', [
             rb.company,
             rb.no,
             rb.password,
         ]);
-        if (result.length == 0) {
+        if (users.length == 0) {
             return res.status(401).json({ message: '員編或密碼錯誤' });
         }
-        let member = result[0];
-        let user = { company: member.applicant_unit, user: member.staff_code, password: member.password };
+        let user = users[0];
+        let saveUser = {
+            id: user.id,
+            name: user.name,
+            applicant_unit: user.applicant_unit,
+            staff_code: user.staff_code,
+            job: user.job,
+        };
 
-        req.session.member = user;
-        console.log('ss', req.session);
+        req.session.member = saveUser;
+        console.log(req.session);
+
         res.json(user);
     } catch (err) {
         console.log(err);
     }
 });
 
-// 抓使用者資   TODO: SESSION
-// http://localhost:3001/api/login/auth
-router.get('/auth', async (req, res) => {
-    let [result] = await pool.execute(`SELECT * FROM users WHERE applicant_unit=? && staff_code=? `, [
-        req.session.member.company,
-        req.session.member.user,
-    ]);
-    res.json(result);
-});
+
 
 // 匯出
 module.exports = router;
