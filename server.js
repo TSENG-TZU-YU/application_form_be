@@ -1,9 +1,8 @@
+
 const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
-
 require('dotenv').config();
-
 const port = process.env.SERVER_PORT;
 const pool = require('./utils/db.js');
 const path = require('path');
@@ -46,7 +45,6 @@ app.use('/api/logout', logout);
 //get使用者申請表
 let application_get = require('./routers/application_get');
 app.use('/api/application_get', application_get);
-
 
 //post使用者申請表
 let application_post = require('./routers/application_post');
