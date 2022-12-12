@@ -54,6 +54,9 @@ app.use('/api/application_post', application_post);
 let application_check = require('./routers/application_check');
 app.use('/api/application_check', application_check);
 
+// Routers middleware
+const application = require('./routers/application');
+app.use('/api/1.0/application', application);
 
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
