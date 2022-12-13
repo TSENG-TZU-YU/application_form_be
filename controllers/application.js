@@ -11,7 +11,7 @@ async function getAllApp(req, res) {
       FROM application_form a 
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
-      WHERE a.user_id = 1
+      WHERE a.user_id = ?
        `,
         [userId]
     );
@@ -50,9 +50,15 @@ async function getUserIdApp(req, res) {
         [numId, 1]
     );
 
+    //審核結果
+    let [handleResult] = await pool.execute(
+      `SELECT * 
+    FROM select_states_detail`);
+
     res.json({
         result,
         needResult,
+        handleResult,
     });
 }
 
