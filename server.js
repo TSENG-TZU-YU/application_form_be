@@ -1,9 +1,8 @@
-
 const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
 require('dotenv').config();
-const port = process.env.SERVER_PORT;
+const port = process.env.SERVER_PORT || 3001;
 const pool = require('./utils/db.js');
 const path = require('path');
 const cors = require('cors');
@@ -14,6 +13,14 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+// app.get('/', (req, res) => {
+//     res.cookie({ name: 'aaa' });
+//     console.log(res.cookie);
+// });
+
 // 啟用 session
 const expressSession = require('express-session');
 // 把 session 存在硬碟中
@@ -22,7 +29,7 @@ app.use(
     expressSession({
         store: new FileStore({
             // session 儲存的路徑
-            path: path.join(__dirname, '..', 'sessions'),
+            path: path.join(__dirname, '.', 'sessions'),
         }),
         secret: process.env.SESSION_SECRET,
         // 如果 session 沒有改變的話，要不要重新儲存一次？
@@ -32,15 +39,38 @@ app.use(
     })
 );
 
+// app.use(
+//     expressSession({
+//       secret: process.env.SESSION_SECRET,
+//       saveUninitialized: false,
+//       resave: false,
+//     })
+//   );
+//   app.get('/', (req, res) => {
+//     res.cookie('lang', 'zh-TW');
+//     res.send('home');
+//   });
+
+//   app.get('/login', (req, res) => {
+//     req.session.message = {
+//       title: 'sessionTest',
+//     };
+//     res.send('login');
+//   });
+//   app.get('/session', (req, res) => {
+//     const response = JSON.stringify(req.session.message);
+//     console.log('response', response);
+//     res.json(response);
+//   });
+
 //登入
+
 let login = require('./routers/login');
 app.use('/api/login', login);
-
 
 //登出
 let logout = require('./routers/logout');
 app.use('/api/logout', logout);
-
 
 //get使用者申請表
 let application_get = require('./routers/application_get');
@@ -55,8 +85,8 @@ let application_check = require('./routers/application_check');
 app.use('/api/application_check', application_check);
 
 // Routers middleware
-const application = require('./routers/application');
-app.use('/api/1.0/application', application);
+const applicationData = require('./routers/application');
+app.use('/api/1.0/applicationData', applicationData);
 
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
