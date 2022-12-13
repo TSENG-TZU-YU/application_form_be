@@ -13,8 +13,8 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
 
 // app.get('/', (req, res) => {
 //     res.cookie({ name: 'aaa' });
@@ -39,13 +39,7 @@ app.use(
     })
 );
 
-// app.use(
-//     expressSession({
-//       secret: process.env.SESSION_SECRET,
-//       saveUninitialized: false,
-//       resave: false,
-//     })
-//   );
+
 //   app.get('/', (req, res) => {
 //     res.cookie('lang', 'zh-TW');
 //     res.send('home');

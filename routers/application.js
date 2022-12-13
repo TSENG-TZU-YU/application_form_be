@@ -7,7 +7,7 @@ const appController = require('../controllers/application');
 
 // 全部列表資料
 router.get('/', appController.getAllApp);
-// router.get('/:num', appController.getUserIdApp);
+router.get('/:num', appController.getUserIdApp);
 
 
 module.exports = router;
