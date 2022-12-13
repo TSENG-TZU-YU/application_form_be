@@ -2,7 +2,7 @@ const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
 require('dotenv').config();
-const port = process.env.SERVER_PORT;
+const port = process.env.SERVER_PORT || 3001;
 const pool = require('./utils/db.js');
 //文件上傳
 const fileUpload = require('express-fileupload');
@@ -14,6 +14,14 @@ const corsOptions = {
     origin: ['http://localhost:3000'],
 };
 app.use(cors(corsOptions));
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+// app.get('/', (req, res) => {
+//     res.cookie({ name: 'aaa' });
+//     console.log(res.cookie);
+// });
 
 // 啟用 session
 const expressSession = require('express-session');
@@ -33,9 +41,9 @@ app.use(
     })
 );
 
-//啟用 express-fileupload
-// app.use(fileUpload());
 
+
+//啟用 express-fileupload
 app.use(
     fileUpload({
         createParentPath: true,
@@ -44,8 +52,32 @@ app.use(
 );
 
 //-----------------------------------------------------
+// app.use(
+//     expressSession({
+//       secret: process.env.SESSION_SECRET,
+//       saveUninitialized: false,
+//       resave: false,
+//     })
+//   );
+//   app.get('/', (req, res) => {
+//     res.cookie('lang', 'zh-TW');
+//     res.send('home');
+//   });
+
+//   app.get('/login', (req, res) => {
+//     req.session.message = {
+//       title: 'sessionTest',
+//     };
+//     res.send('login');
+//   });
+//   app.get('/session', (req, res) => {
+//     const response = JSON.stringify(req.session.message);
+//     console.log('response', response);
+//     res.json(response);
+//   });
 
 //登入
+
 let login = require('./routers/login');
 app.use('/api/login', login);
 
@@ -66,6 +98,9 @@ let application_check = require('./routers/application_check');
 app.use('/api/application_check', application_check);
 
 //-----------------------------------------------------
+// Routers middleware
+const applicationData = require('./routers/application');
+app.use('/api/1.0/applicationData', applicationData);
 
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
