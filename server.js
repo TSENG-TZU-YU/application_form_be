@@ -91,9 +91,6 @@ app.use('/api/application_get', application_get);
 let application_post = require('./routers/application_post');
 app.use('/api/application_post', application_post);
 
-//post使用者申請表
-let application_check = require('./routers/application_check');
-app.use('/api/application_check', application_check);
 
 //-----------------------------------------------------
 // Routers middleware

@@ -11,7 +11,7 @@ async function getAllApp(req, res) {
       FROM application_form a 
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
-      WHERE a.user_id = 1
+      WHERE a.user_id = ?
        `,
         [userId]
     );
