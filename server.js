@@ -1,18 +1,19 @@
-
 const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
 require('dotenv').config();
 const port = process.env.SERVER_PORT;
 const pool = require('./utils/db.js');
+//文件上傳
+const fileUpload = require('express-fileupload');
 const path = require('path');
 const cors = require('cors');
+app.use(express.json());
 const corsOptions = {
     credentials: true,
     origin: ['http://localhost:3000'],
 };
 app.use(cors(corsOptions));
-app.use(express.json());
 
 // 啟用 session
 const expressSession = require('express-session');
@@ -22,7 +23,7 @@ app.use(
     expressSession({
         store: new FileStore({
             // session 儲存的路徑
-            path: path.join(__dirname, '..', 'sessions'),
+            path: path.join(__dirname, '.', 'sessions'),
         }),
         secret: process.env.SESSION_SECRET,
         // 如果 session 沒有改變的話，要不要重新儲存一次？
@@ -32,15 +33,25 @@ app.use(
     })
 );
 
+//啟用 express-fileupload
+// app.use(fileUpload());
+
+app.use(
+    fileUpload({
+        createParentPath: true,
+        defParamCharset: 'utf8', // 添加utf8编码
+    })
+);
+
+//-----------------------------------------------------
+
 //登入
 let login = require('./routers/login');
 app.use('/api/login', login);
 
-
 //登出
 let logout = require('./routers/logout');
 app.use('/api/logout', logout);
-
 
 //get使用者申請表
 let application_get = require('./routers/application_get');
@@ -54,8 +65,10 @@ app.use('/api/application_post', application_post);
 let application_check = require('./routers/application_check');
 app.use('/api/application_check', application_check);
 
+//-----------------------------------------------------
 
 // 啟動 server，並且開始 listen 一個 port
 app.listen(port, () => {
     console.log(`server start at ${port}`);
 });
+// app.listen(4000);

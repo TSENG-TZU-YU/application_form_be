@@ -27,7 +27,7 @@ router.post('/', async (req, res) => {
         };
 
         req.session.member = saveUser;
-        console.log('1', req.session);
+      
 
         res.json(user);
     } catch (err) {

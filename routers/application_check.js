@@ -10,6 +10,7 @@ router.get('/', async (req, res) => {
         `SELECT application_form.*,status.name FROM application_form JOIN status ON application_form.status_id = status.id`
     );
     res.json(result);
+    console.log('111',req.session)
 });
 
 // 匯出

@@ -19,10 +19,32 @@ router.post('/', async (req, res) => {
                 [r.number, data.title, data.text]
             );
         }
-        console.log(application);
     } catch (err) {
         console.log(err);
     }
+});
+
+router.post('/file', async (req, res) => {
+    const arr = Object.values(req.files);
+
+    for (let data of arr) {
+        let uploadPath = __dirname + '/../uploads/' + data.name;
+        data.mv(uploadPath, (err) => {
+            if (err) {
+                return res.send(err);
+            }
+        });
+        try {
+            let [files] = await pool.execute(
+                'INSERT INTO upload_files_detail (case_number_id,name,create_time) VALUES (?,?,?)',
+                [req.body.number, data.name, req.body.create_time]
+            );
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    res.send('ok2');
+    console.log('1', req.files);
 });
 
 // 匯出
