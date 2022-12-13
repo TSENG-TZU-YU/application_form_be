@@ -15,8 +15,8 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
 
 // app.get('/', (req, res) => {
 //     res.cookie({ name: 'aaa' });
