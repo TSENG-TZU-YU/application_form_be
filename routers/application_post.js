@@ -9,15 +9,22 @@ router.post('/', async (req, res) => {
     try {
         let r = req.body;
         let arr = req.body.need;
-        let [application] = await pool.execute(
-            `INSERT INTO application_form (case_number,user,user_id,handler,application_category,project_name,cycle,status_id, create_time ) VALUES (?,?,?,?,?,?,?,?,?)`,
-            [r.number, r.name, r.id, r.handler, r.category, r.name, r.cycle, r.status, r.create_time]
-        );
-        for (let data of arr) {
-            let [application_detail] = await pool.execute(
-                `INSERT INTO application_form_detail (case_number_id,requirement_name,directions ) VALUES (?,?,?)`,
-                [r.number, data.title, data.text]
+        // if(r.number.==)
+        let [checkData] = await pool.execute('SELECT * FROM application_form  WHERE case_number = ? && user_id=?', [
+            r.number,
+            r.id,
+        ]);
+        if (checkData.length === 0) {
+            let [application] = await pool.execute(
+                `INSERT INTO application_form (case_number,user,user_id,handler,application_category,project_name,cycle,status_id, create_time ) VALUES (?,?,?,?,?,?,?,?,?)`,
+                [r.number, r.name, r.id, r.handler, r.category, r.name, r.cycle, r.status, r.create_time]
             );
+            for (let data of arr) {
+                let [application_detail] = await pool.execute(
+                    `INSERT INTO application_form_detail (case_number_id,requirement_name,directions ) VALUES (?,?,?)`,
+                    [r.number, data.title, data.text]
+                );
+            }
         }
     } catch (err) {
         console.log(err);
