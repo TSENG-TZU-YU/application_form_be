@@ -12,10 +12,10 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE d.valid = ? AND a.user_id = ?
+      WHERE a.user_id = ?
       GROUP BY d.case_number_id,s.name, u.applicant_unit
        `,
-        [1,userId]
+        [userId]
     );
     let [progressResult] = await pool.execute(
         `SELECT a.case_number, COUNT(d.case_number_id) sum, SUM(d.checked) cou
@@ -111,6 +111,11 @@ async function getUserIdApp(req, res) {
     // console.log(myself);
     let [handlerResult] = await pool.execute(`SELECT * FROM handler WHERE name NOT IN (?) `, [myself]);
 
+    let [getFile] = await pool.execute(
+        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && b.valid=1`,
+        [numId]
+    );
+
     res.json({
         result,
         needResult,
@@ -118,6 +123,7 @@ async function getUserIdApp(req, res) {
         handleResult,
         selectResult,
         handlerResult,
+        getFile,
     });
 }
 
@@ -197,6 +203,36 @@ async function handlePostNeed(req, res) {
     res.json({ message: '新增成功' });
 }
 
+async function handlePostFile(req, res) {
+    const numId = req.params.num;
+    const arr = Object.values(req.files);
+    let v = req.body;
+    // 轉換類型名稱
+    let [category] = await pool.execute('SELECT * FROM application_category');
+    let [newState] = category.filter((d) => {
+        return d.name === v.No;
+    });
+
+    for (let i = 0; i < arr.length; i++) {
+        let uploadPath = __dirname + '/../uploads/' + arr[i].name;
+        arr[i].mv(uploadPath, (err) => {
+            if (err) {
+                return res.send(err);
+            }
+        });
+        try {
+            let [files] = await pool.execute(
+                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,2,?)',
+                [numId, arr[i].name, newState.number + v.fileNo + [i], v.create_time]
+            );
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    res.send('ok2');
+}
+
 module.exports = {
     getAllApp,
     getUserIdApp,
@@ -205,4 +241,5 @@ module.exports = {
     handlePost,
     handlePostNeed,
     getCaseHistory,
+    handlePostFile,
 };

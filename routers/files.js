@@ -9,7 +9,33 @@ router.get('/getUserFile/:num', async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
-        `SELECT * FROM upload_files_detail WHERE case_number_id=?  ORDER BY create_time DESC`,
+        `SELECT * FROM upload_files_detail WHERE case_number_id=? && valid=1  ORDER BY create_time DESC`,
+        [numId]
+    );
+
+    res.json(getUserTotalFile);
+});
+
+// 抓取處理者上傳的檔案
+// http://localhost:3001/api/files/getHandlerFile
+router.get('/getHandlerFile/:num', async (req, res) => {
+    const numId = req.params.num;
+
+    let [getUserTotalFile] = await pool.execute(
+        `SELECT * FROM upload_files_detail WHERE case_number_id=? && valid=2  ORDER BY create_time DESC`,
+        [numId]
+    );
+
+    res.json(getUserTotalFile);
+});
+
+// 抓取處理者上傳的檔案
+// http://localhost:3001/api/files/getHandlerFileNo
+router.get('/getHandlerFileNo/:num', async (req, res) => {
+    const numId = req.params.num;
+
+    let [getUserTotalFile] = await pool.execute(
+        `SELECT application_category FROM application_form WHERE case_number=? `,
         [numId]
     );
 
