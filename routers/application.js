@@ -20,13 +20,16 @@ router.put('/putAcceptNeed/:num', appController.handleAcceptNeed);
 // 取消申請
 router.post('/cancleAcc/:num', appController.handleCancleAcc);
 
+// 轉件
+router.post('/acceptCase', appController.handleAcceptCase);
+router.post('/rejectCase', appController.handleRejectCase);
 
 // 審核歷程
 router.get('/getCaseHistory/:case', appController.getCaseHistory);
 
 // 全部列表資料
 router.get('/', appController.getAllApp);
-router.get('/:num', appController.getUserIdApp);
+router.post('/:num', appController.getUserIdApp);
 
 // post file
 router.post('/postHandleFile/:num', appController.handlePostFile);

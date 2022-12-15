@@ -13,8 +13,8 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 async function getAllApp(req, res) {
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
-    console.log('ucc', req.session);
-// return
+    // console.log('ucc', req.session);
+    // return
     // user permissions=1
     let [result] = await pool.execute(
         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
@@ -22,23 +22,23 @@ async function getAllApp(req, res) {
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
       JOIN application_form_detail d ON a.case_number = d.case_number_id
-      WHERE a.user_id = ?
+      WHERE a.user_id = ? AND a.valid = ?
       GROUP BY d.case_number_id,s.name, u.applicant_unit
        `,
-        [userId]
+        [userId, 0]
     );
-    let [progressResult] = await pool.execute(
-        `SELECT a.case_number, COUNT(d.case_number_id) sum, SUM(d.checked) cou
-    FROM application_form a 
-    JOIN status s ON a.status_id = s.id
-    JOIN users u ON a.user_id = u.id
-    JOIN application_form_detail d ON a.case_number = d.case_number_id
-    WHERE a.user_id = ?
-    GROUP BY d.case_number_id, s.name, u.applicant_unit
-    ORDER BY a.create_time DESC
-     `,
-        [userId]
-    );
+    // let [progressResult] = await pool.execute(
+    //     `SELECT a.case_number, COUNT(d.case_number_id) sum, SUM(d.checked) cou
+    // FROM application_form a
+    // JOIN status s ON a.status_id = s.id
+    // JOIN users u ON a.user_id = u.id
+    // JOIN application_form_detail d ON a.case_number = d.case_number_id
+    // WHERE a.user_id = ?
+    // GROUP BY d.case_number_id, s.name, u.applicant_unit
+    // ORDER BY a.create_time DESC
+    //  `,
+    //     [userId]
+    // );
 
     // handler permissions=3
     let [handlerResult] = await pool.execute(
@@ -48,7 +48,7 @@ async function getAllApp(req, res) {
     JOIN users u ON a.user_id = u.id
     JOIN application_form_detail d ON a.case_number = d.case_number_id
     WHERE a.handler = ?
-    GROUP BY d.case_number_id, s.name, u.applicant_unit
+    GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
     ORDER BY a.create_time DESC
      `,
         [handleName]
@@ -77,11 +77,11 @@ async function getAllApp(req, res) {
     });
 }
 
+// 案件審核歷程
 async function getCaseHistory(req, res) {
     const caseNum = req.params.case;
     console.log(caseNum);
 
-    // 案件審核歷程
     let [result] = await pool.execute(
         `SELECT * 
   FROM select_states_detail 
@@ -104,18 +104,36 @@ async function getCaseHistory(req, res) {
 
 // /api/1.0/applicationData/12345
 async function getUserIdApp(req, res) {
+    const { caseId } = req.body;
     const numId = req.params.num;
-    // console.log(numId)
+    const handler = req.session.member.name;
+    const permissions = req.session.member.permissions_id;
 
-    //表單資料
-    let [result] = await pool.execute(
-        `SELECT a.*, s.name, u.applicant_unit
+    // console.log(numId, handler, permissions, caseId);
+
+    let result = '';
+    //表單資料  p=3
+    if (permissions === 3) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit
     FROM application_form a
     JOIN status s ON a.status_id = s.id
     JOIN users u ON a.user_id = u.id
-    WHERE a.case_number = ? AND valid = ?`,
-        [numId, 1]
-    );
+    WHERE a.case_number = ? AND a.handler = ? AND a.id = ?`,
+            [numId, handler, caseId]
+        );
+    }
+
+    if (permissions === 1) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit
+    FROM application_form a
+    JOIN status s ON a.status_id = s.id
+    JOIN users u ON a.user_id = u.id
+    WHERE a.case_number = ? AND a.id = ? `,
+            [numId, caseId]
+        );
+    }
 
     //需求資料
     let [needResult] = await pool.execute(
@@ -142,13 +160,14 @@ async function getUserIdApp(req, res) {
     //可選擇狀態
     let [selectResult] = await pool.execute(`SELECT * 
     FROM status 
-    WHERE name NOT IN ('評估中','已補件','取消申請','已修改需求')`);
+    WHERE name NOT IN ('評估中','已補件','取消申請','已修改需求','已轉件')`);
 
     // handler
-    // let myself = result[0].handler;
+    let myself = result[0].handler;
     // console.log(myself);
-    let [handlerResult] = await pool.execute(`SELECT * FROM handler `);
+    let [handlerResult] = await pool.execute(`SELECT * FROM handler WHERE name NOT IN (?)`, [myself]);
 
+    // file
     let [getFile] = await pool.execute(
         `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && b.valid=1`,
         [numId]
@@ -182,23 +201,17 @@ async function putUnNeedChecked(req, res) {
 
 // post 審理結果
 async function handlePost(req, res) {
-    // let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log(req.body[0]);
     let v = req.body;
-    console.log(v)
-  
+    let v0 = req.body[0];
+
+    console.log('all', v);
+
     // 加入審核狀態
-    if (v.status !== '案件進行中') {
-        let [result] = await pool.execute(
-            'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
-            [v.caseNumber, v.handler, v.status, v.remark, '', nowDate]
-        );
-    } else {
-        let [result] = await pool.execute(
-            'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
-            [v.caseNumber, v.handler, v.status, v.remark, v.finishTime, nowDate]
-        );
-    }
+    let [result] = await pool.execute(
+        'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
+        [v.caseNumber, v.handler, v.status, v.remark, v.finishTime, nowDate]
+    );
 
     // 取得更新狀態id
     let [states] = await pool.execute('SELECT * FROM status');
@@ -215,8 +228,26 @@ async function handlePost(req, res) {
 
     if (v.status === '轉件中') {
         let [result] = await pool.execute(
-          'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
-          [v.caseNumber, v.handler, v.status, v.remark, v.finishTime, nowDate]
+            `INSERT INTO application_form (case_number,user,user_id,handler,application_category,project_name,cycle,status_id,sender, create_time,valid,transfer) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+            [
+                v0.case_number,
+                v0.user,
+                v0.user_id,
+                v.transfer,
+                v0.application_category,
+                v0.project_name,
+                v0.cycle,
+                11,
+                v0.handler,
+                nowDate,
+                1,
+                1,
+            ]
+        );
+
+        let [updateResult] = await pool.execute(
+            'UPDATE application_form SET transfer = ?, valid = ? WHERE case_number = ? AND handler = ?',
+            [0, 0, v0.case_number, v0.handler]
         );
     }
 
@@ -228,8 +259,15 @@ async function handlePost(req, res) {
 async function handleChangeState(req, res) {
     const { caseNum } = req.params;
     let handler = req.body.handler;
-    // console.log(caseNum);
-    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ?', [5, caseNum]);
+    let id = req.body.id;
+
+    // console.log(caseNum, handler, id);
+
+    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
+        5,
+        caseNum,
+        id,
+    ]);
 
     addHandleState(caseNum, handler, '評估中', '', '', nowDate);
 
@@ -292,6 +330,53 @@ async function handleCancleAcc(req, res) {
     res.json({ message: '接收成功' });
 }
 
+// put 確認接收轉件
+async function handleAcceptCase(req, res) {
+    // const caseNum = req.params.num;
+    let [v] = req.body;
+    console.log('v', v);
+
+    let [newResult] = await pool.execute(
+        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? ',
+        [4, 0, 0, v.case_number, v.handler]
+    );
+
+    let [oldResult] = await pool.execute(
+        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ? ',
+        [14, 1, 0, v.case_number, v.sender, 0, 0]
+    );
+
+    addHandleState(v.case_number, v.handler, '案件進行中', '已接收案件', '', nowDate);
+    addHandleState(v.case_number, v.sender, '已轉件', `接收人${v.handler}`, '', nowDate);
+
+    // console.log('addCalendar', states);
+    res.json({ message: v.sender });
+}
+
+// put 拒絕接收轉件
+async function handleRejectCase(req, res) {
+    let [v] = req.body;
+    console.log('v', v);
+
+    let [newResult] = await pool.execute(
+        `UPDATE application_form SET status_id=?, valid = ?, transfer = ? 
+        WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ? `,
+        [15, 1, 0, v.case_number, v.handler, 1, 1]
+    );
+
+    let [oldResult] = await pool.execute(
+        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ? ',
+        [4, 0, 0, v.case_number, v.sender, 0, 0]
+    );
+
+    addHandleState(v.case_number, v.sender, '申請中', '', '', nowDate);
+    // addHandleState(v.case_number, v.sender, '已轉件', `接收人${v.handler}`, '', nowDate);
+
+    // console.log('addCalendar', states);
+    res.json({ message: '接收成功' });
+}
+
+// file
 async function handlePostFile(req, res) {
     const numId = req.params.num;
     const arr = Object.values(req.files);
@@ -334,4 +419,6 @@ module.exports = {
     handleChangeState,
     handleCancleAcc,
     handlePostFile,
+    handleAcceptCase,
+    handleRejectCase,
 };
