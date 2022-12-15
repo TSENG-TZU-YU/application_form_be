@@ -14,7 +14,7 @@ async function getAllApp(req, res) {
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
     console.log('ucc', req.session);
-// return
+    // return
     // user permissions=1
     let [result] = await pool.execute(
         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
@@ -113,8 +113,8 @@ async function getUserIdApp(req, res) {
     FROM application_form a
     JOIN status s ON a.status_id = s.id
     JOIN users u ON a.user_id = u.id
-    WHERE a.case_number = ? AND valid = ?`,
-        [numId, 1]
+    WHERE a.case_number = ? `,
+        [numId]
     );
 
     //需求資料
@@ -150,7 +150,7 @@ async function getUserIdApp(req, res) {
     let [handlerResult] = await pool.execute(`SELECT * FROM handler `);
 
     let [getFile] = await pool.execute(
-        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && b.valid=1`,
+        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && a.valid=0`,
         [numId]
     );
 
@@ -185,8 +185,8 @@ async function handlePost(req, res) {
     // let nowDate = moment().format('YYYY-MM-DD HH:mm:ss');
     // console.log(req.body[0]);
     let v = req.body;
-    console.log(v)
-  
+    console.log(v);
+
     // 加入審核狀態
     if (v.status !== '案件進行中') {
         let [result] = await pool.execute(
@@ -215,8 +215,8 @@ async function handlePost(req, res) {
 
     if (v.status === '轉件中') {
         let [result] = await pool.execute(
-          'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
-          [v.caseNumber, v.handler, v.status, v.remark, v.finishTime, nowDate]
+            'INSERT INTO select_states_detail (case_number, handler, select_state, remark, estimated_time,create_time) VALUES (?,?,?,?,?,?)',
+            [v.caseNumber, v.handler, v.status, v.remark, v.finishTime, nowDate]
         );
     }
 
@@ -318,6 +318,11 @@ async function handlePostFile(req, res) {
             console.log(err);
         }
     }
+
+    await pool.execute(
+        `UPDATE select_states_detail SET up_files_time=? WHERE case_number=? ORDER BY create_time DESC LIMIT 1`,
+        [v.create_time, numId]
+    );
 
     res.send('ok2');
 }

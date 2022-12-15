@@ -50,8 +50,8 @@ router.post('/file', async (req, res) => {
         });
         try {
             let [files] = await pool.execute(
-                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,1,?)',
-                [v.number, arr[i].name, v.fileNo + [i], v.create_time]
+                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
+                [v.number, arr[i].name, v.fileNo + [i], 0, v.create_time]
             );
         } catch (err) {
             console.log(err);
