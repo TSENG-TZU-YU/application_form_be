@@ -12,6 +12,7 @@ app.use(express.json());
 const corsOptions = {
     credentials: true,
     origin: ['http://localhost:3000'],
+    exposedHeaders: ['Content-Disposition'],
 };
 app.use(cors(corsOptions));
 
@@ -74,8 +75,8 @@ app.use(
 //     res.json(response);
 //   });
 
-//登入
 
+//登入
 let login = require('./routers/login');
 app.use('/api/login', login);
 
@@ -91,6 +92,9 @@ app.use('/api/application_get', application_get);
 let application_post = require('./routers/application_post');
 app.use('/api/application_post', application_post);
 
+//檔案
+let files = require('./routers/files');
+app.use('/api/files', files);
 
 //-----------------------------------------------------
 // Routers middleware

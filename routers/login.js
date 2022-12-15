@@ -23,11 +23,10 @@ router.post('/', async (req, res) => {
             applicant_unit: user.applicant_unit,
             staff_code: user.staff_code,
             job: user.job,
-            permissions_id:user.permissions_id
+            permissions_id: user.permissions_id,
         };
 
         req.session.member = saveUser;
-      
 
         res.json(user);
     } catch (err) {
@@ -54,7 +53,7 @@ router.get('/auth', async (req, res) => {
             applicant_unit: user.applicant_unit,
             staff_code: user.staff_code,
             job: user.job,
-            permissions_id:user.permissions_id
+            permissions_id: user.permissions_id,
         };
 
         req.session.member = saveUser;
