@@ -18,8 +18,6 @@ async function getAllApp(req, res) {
     // user permissions=1
     let [result] = await pool.execute(
         `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
-<<<<<<< HEAD
-=======
       FROM application_form a 
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
@@ -31,7 +29,6 @@ async function getAllApp(req, res) {
     );
     let [progressResult] = await pool.execute(
         `SELECT a.case_number, COUNT(d.case_number_id) sum, SUM(d.checked) cou
->>>>>>> e16d341b173da7af9cecea685631161bcb034404
     FROM application_form a 
     JOIN status s ON a.status_id = s.id
     JOIN users u ON a.user_id = u.id
@@ -124,14 +121,14 @@ async function getUserIdApp(req, res) {
     let [needResult] = await pool.execute(
         `SELECT * 
     FROM application_form_detail 
-    WHERE case_number_id = ? AND valid = ?`,
-        [numId, 1]
+    WHERE case_number_id = ?`,
+        [numId]
     );
     let [needSum] = await pool.execute(
         `SELECT SUM(checked) AS checked
   FROM application_form_detail 
-  WHERE case_number_id = ? AND valid = ?`,
-        [numId, 1]
+  WHERE case_number_id = ?`,
+        [numId]
     );
     //審核結果
     let [handleResult] = await pool.execute(
@@ -148,9 +145,9 @@ async function getUserIdApp(req, res) {
     WHERE name NOT IN ('評估中','已補件','取消申請','已修改需求')`);
 
     // handler
-    let myself = result[0].handler;
+    // let myself = result[0].handler;
     // console.log(myself);
-    let [handlerResult] = await pool.execute(`SELECT * FROM handler WHERE name NOT IN (?) `, [myself]);
+    let [handlerResult] = await pool.execute(`SELECT * FROM handler `);
 
     let [getFile] = await pool.execute(
         `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && b.valid=1`,
