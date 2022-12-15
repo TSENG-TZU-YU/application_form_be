@@ -35,7 +35,7 @@ router.get('/getHandlerFileNo/:num', async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
-        `SELECT application_category FROM application_form WHERE case_number=? `,
+        `SELECT status_id,application_category FROM application_form WHERE case_number=? `,
         [numId]
     );
 

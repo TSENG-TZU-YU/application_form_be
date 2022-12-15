@@ -222,8 +222,8 @@ async function handlePostFile(req, res) {
         });
         try {
             let [files] = await pool.execute(
-                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,2,?)',
-                [numId, arr[i].name, newState.number + v.fileNo + [i], v.create_time]
+                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
+                [numId, arr[i].name, newState.number + v.fileNo + [i], v.valid, v.create_time]
             );
         } catch (err) {
             console.log(err);
