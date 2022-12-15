@@ -59,6 +59,7 @@ router.get('/auth', async (req, res) => {
         };
 
         req.session.member = saveUser;
+        // console.log('2', req.session);
 
         res.json(user);
     } catch (err) {
