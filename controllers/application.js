@@ -205,7 +205,7 @@ async function handlePost(req, res) {
     let v = req.body;
     let v0 = req.body[0];
 
-    console.log('all', v);
+    // console.log('all', v);
 
     // 加入審核狀態
     let [result] = await pool.execute(
