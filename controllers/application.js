@@ -13,11 +13,14 @@ async function addHandleState(caseNum, handler, state, remark, estTime, createTi
 async function getAllApp(req, res) {
     let userId = req.session.member.id;
     let handleName = req.session.member.name;
+    const permissions = req.session.member.permissions_id;
     // console.log('ucc', req.session);
-    // return
+
+    let result = '';
     // user permissions=1
-    let [result] = await pool.execute(
-        `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
+    if (permissions === 1) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
       FROM application_form a 
       JOIN status s ON a.status_id = s.id
       JOIN users u ON a.user_id = u.id
@@ -26,34 +29,25 @@ async function getAllApp(req, res) {
       GROUP BY d.case_number_id,s.name, u.applicant_unit
       ORDER BY a.create_time DESC
        `,
-        [userId, 0]
-    );
-    // let [progressResult] = await pool.execute(
-    //     `SELECT a.case_number, COUNT(d.case_number_id) sum, SUM(d.checked) cou
-    // FROM application_form a
-    // JOIN status s ON a.status_id = s.id
-    // JOIN users u ON a.user_id = u.id
-    // JOIN application_form_detail d ON a.case_number = d.case_number_id
-    // WHERE a.user_id = ?
-    // GROUP BY d.case_number_id, s.name, u.applicant_unit
-    // ORDER BY a.create_time DESC
-    //  `,
-    //     [userId]
-    // );
+            [userId, 0]
+        );
+    }
 
     // handler permissions=3
-    let [handlerResult] = await pool.execute(
-        `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
-    FROM application_form a 
-    JOIN status s ON a.status_id = s.id
-    JOIN users u ON a.user_id = u.id
-    JOIN application_form_detail d ON a.case_number = d.case_number_id
-    WHERE a.handler = ?
-    GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
-    ORDER BY a.create_time DESC
-     `,
-        [handleName]
-    );
+    if (permissions === 3) {
+        [result] = await pool.execute(
+            `SELECT a.*, s.name, u.applicant_unit, COUNT(d.case_number_id) sum, SUM(d.checked) cou 
+        FROM application_form a 
+        JOIN status s ON a.status_id = s.id
+        JOIN users u ON a.user_id = u.id
+        JOIN application_form_detail d ON a.case_number = d.case_number_id
+        WHERE a.handler = ?
+        GROUP BY d.case_number_id, s.name, u.applicant_unit, a.id
+        ORDER BY a.create_time DESC
+         `,
+            [handleName]
+        );
+    }
 
     // progress
     // let [progressResult] = await pool.execute(
@@ -74,14 +68,13 @@ async function getAllApp(req, res) {
         //   lastPage,
         // },
         result,
-        handlerResult,
     });
 }
 
 // 案件審核歷程
 async function getCaseHistory(req, res) {
     const caseNum = req.params.case;
-    console.log(caseNum);
+    // console.log(caseNum);
 
     let [result] = await pool.execute(
         `SELECT * 
@@ -350,7 +343,7 @@ async function handleFinish(req, res) {
 async function handleAcceptCase(req, res) {
     // const caseNum = req.params.num;
     let [v] = req.body;
-    console.log('v', v);
+    // console.log('v', v);
 
     let [newResult] = await pool.execute(
         'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? ',
@@ -419,11 +412,10 @@ async function handlePostFile(req, res) {
             console.log(err);
         }
     }
-    await pool.execute(`UPDATE select_states_detail SET up_files_time=? WHERE case_number=? && select_state=? ORDER BY create_time LIMIT 1`, [
-        v.create_time,
-        numId,
-        '需補件',
-    ]);
+    await pool.execute(
+        `UPDATE select_states_detail SET up_files_time=? WHERE case_number=? && select_state=? ORDER BY create_time LIMIT 1`,
+        [v.create_time, numId, '需補件']
+    );
     res.send('ok2');
 }
 
