@@ -160,7 +160,7 @@ async function getUserIdApp(req, res) {
     //可選擇狀態
     let [selectResult] = await pool.execute(`SELECT * 
     FROM status 
-    WHERE name NOT IN ('評估中','已補件','取消申請','已修改需求','已轉件')`);
+    WHERE name NOT IN ('評估中','已補件','取消申請','已修改需求','已轉件','已拒絕接收轉件','已完成')`);
 
     // handler
     let myself = result[0].handler;
@@ -330,6 +330,21 @@ async function handleCancleAcc(req, res) {
     res.json({ message: '接收成功' });
 }
 
+// put finish
+async function handleFinish(req, res) {
+    const caseNum = req.params.num;
+    let id = req.body.caseId;
+    let handler = req.session.member.name
+    // console.log(caseNum, id);
+
+    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE id = ?', [16, id]);
+
+    addHandleState(caseNum, handler, '已完成', '', '', nowDate);
+
+    // console.log('addCalendar', states);
+    res.json({ message: '接收成功' });
+}
+
 // put 確認接收轉件
 async function handleAcceptCase(req, res) {
     // const caseNum = req.params.num;
@@ -421,4 +436,5 @@ module.exports = {
     handlePostFile,
     handleAcceptCase,
     handleRejectCase,
+    handleFinish,
 };
