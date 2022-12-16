@@ -163,8 +163,8 @@ async function getUserIdApp(req, res) {
 
     // file
     let [getFile] = await pool.execute(
-        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && a.valid=?`,
-        [numId, 0]
+        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && a.valid=? && b.transfer=?`,
+        [numId, 0, 0]
     );
 
     res.json({
