@@ -20,6 +20,9 @@ router.put('/putAcceptNeed/:num', appController.handleAcceptNeed);
 // 取消申請
 router.post('/cancleAcc/:num', appController.handleCancleAcc);
 
+// finish
+router.post('/applicationFinish/:num', appController.handleFinish);
+
 // 轉件
 router.post('/acceptCase', appController.handleAcceptCase);
 router.post('/rejectCase', appController.handleRejectCase);
