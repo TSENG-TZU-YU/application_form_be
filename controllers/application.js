@@ -183,7 +183,7 @@ async function putNeedChecked(req, res) {
     const { needId } = req.params;
     // console.log('n',needId);
     let [result] = await pool.execute('UPDATE application_form_detail SET checked=? WHERE id = ?', [0, needId]);
-    console.log('put', result);
+    // console.log('put', result);
     res.json({ message: '取消成功' });
 }
 async function putUnNeedChecked(req, res) {
@@ -200,6 +200,7 @@ async function handlePost(req, res) {
     let v0 = req.body[0];
 
     // console.log('all', v);
+    // console.log('all0', v0);
 
     // 加入審核狀態
     let [result] = await pool.execute(
@@ -215,13 +216,13 @@ async function handlePost(req, res) {
     // console.log('new', newState)
     // 更新申請表單狀態
 
-    let [updateResult] = await pool.execute('UPDATE application_form SET status_id = ? WHERE case_number = ?', [
-        newState.id,
-        v.caseNumber,
-    ]);
+    let [updateResult] = await pool.execute(
+        'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
+        [newState.id, v.caseNumber, v0.id]
+    );
 
     if (v.status === '轉件中') {
-        let [result] = await pool.execute(
+        let [newResult] = await pool.execute(
             `INSERT INTO application_form (case_number,user,user_id,handler,application_category,project_name,cycle,status_id,sender, create_time,valid,transfer) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
             [
                 v0.case_number,
@@ -240,8 +241,8 @@ async function handlePost(req, res) {
         );
 
         let [updateResult] = await pool.execute(
-            'UPDATE application_form SET transfer = ?, valid = ? WHERE case_number = ? AND handler = ?',
-            [0, 0, v0.case_number, v0.handler]
+            'UPDATE application_form SET transfer = ?, valid = ? WHERE case_number = ? AND handler = ? AND id = ?',
+            [0, 0, v0.case_number, v0.handler, v0.id]
         );
     }
 
@@ -274,9 +275,11 @@ async function handlePostNeed(req, res) {
     let user = req.session.member.name;
     let handler = req.body[0];
     let v = req.body[1];
+    let id = req.body[2];
     let caseNum = v[0].case_number_id;
-    // console.log(user);
-    // console.log(v.length);
+    // console.log('1',req.body);
+    // console.log('2',v);
+    // console.log('3',req.body[2])
 
     let [delResult] = await pool.execute('DELETE FROM application_form_detail WHERE case_number_id = ? ', [caseNum]);
 
@@ -288,10 +291,10 @@ async function handlePostNeed(req, res) {
     }
 
     // 變更表單狀態
-    let [updateResult] = await pool.execute('UPDATE application_form SET status_id = ? WHERE case_number = ?', [
-        13,
-        caseNum,
-    ]);
+    let [updateResult] = await pool.execute(
+        'UPDATE application_form SET status_id = ? WHERE case_number = ? AND id = ?',
+        [13, caseNum, id]
+    );
 
     addHandleState(caseNum, user, '已修改需求', '', '', nowDate);
 
@@ -302,9 +305,14 @@ async function handlePostNeed(req, res) {
 // put 接收需求
 async function handleAcceptNeed(req, res) {
     const caseNum = req.params.num;
-    // console.log(caseNum);
+    const id = req.body.caseId;
+    // console.log(id);
 
-    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ?', [6, caseNum]);
+    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
+        6,
+        caseNum,
+        id,
+    ]);
 
     // console.log('addCalendar', states);
     res.json({ message: '接收成功' });
@@ -314,9 +322,15 @@ async function handleAcceptNeed(req, res) {
 async function handleCancleAcc(req, res) {
     const caseNum = req.params.num;
     let user = req.body.user;
-    // console.log(caseNum, user);
+    let id = req.body.id;
 
-    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ?', [10, caseNum]);
+    console.log(caseNum, user, id);
+
+    let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE case_number = ? AND id = ?', [
+        10,
+        caseNum,
+        id,
+    ]);
 
     addHandleState(caseNum, user, '取消申請', '', '', nowDate);
 
@@ -343,11 +357,11 @@ async function handleFinish(req, res) {
 async function handleAcceptCase(req, res) {
     // const caseNum = req.params.num;
     let [v] = req.body;
-    // console.log('v', v);
+    console.log('v', v);
 
     let [newResult] = await pool.execute(
-        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? ',
-        [4, 0, 0, v.case_number, v.handler]
+        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND id = ?',
+        [4, 0, 0, v.case_number, v.handler, v.id]
     );
 
     let [oldResult] = await pool.execute(
@@ -374,8 +388,8 @@ async function handleRejectCase(req, res) {
     );
 
     let [oldResult] = await pool.execute(
-        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ? ',
-        [4, 0, 0, v.case_number, v.sender, 0, 0]
+        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ? AND id = ?',
+        [4, 0, 0, v.case_number, v.sender, 0, 0, v.id]
     );
 
     addHandleState(v.case_number, v.sender, '申請中', '', '', nowDate);
