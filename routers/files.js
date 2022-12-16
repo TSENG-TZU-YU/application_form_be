@@ -35,7 +35,7 @@ router.get('/getHandlerFileNo/:num', async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
-        `SELECT status_id,application_category FROM application_form WHERE case_number=? `,
+        `SELECT status_id,application_category,handler FROM application_form WHERE case_number=? `,
         [numId]
     );
 
@@ -61,14 +61,10 @@ router.get('/getUpdateFile/:num', async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
-        `SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a LEFT JOIN select_states_detail b ON a.	create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE c.case_number=? && c.status_id=? && a.valid=? && b.select_state=? &&(b.receive_files_time is null || b.receive_files_time='')  `,
+        `SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a  JOIN select_states_detail b ON a.create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE b.case_number=? && c.status_id=?&& a.valid=?  && b.select_state=? && (b.receive_files_time is null || b.receive_files_time='')  ORDER BY b.create_time DESC LIMIT 1 `,
         [numId, 8, 1, '需補件']
     );
-    // let [getUserTotalFile] = await pool.execute(
-    //     `SELECT remark FROM select_states_detail WHERE case_number=?  && select_state=? && (receive_files_time is null || receive_files_time='') ORDER BY create_time DESC LIMIT 1`,
-    //     [numId, '需補件']
-    // );
-
+    // SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a LEFT JOIN select_states_detail b ON a.	create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE c.case_number='167116822' && c.status_id='8' && a.valid='1' && b.select_state='需補件' &&(b.receive_files_time is null || b.receive_files_time='')  ORDER BY create_time DESC LIMIT 1
     res.json(getUserTotalFile);
 });
 
@@ -84,10 +80,13 @@ router.patch('/acceptFile/:num', async (req, res) => {
     );
     await pool.execute(`UPDATE application_form SET status_id=? WHERE case_number = ? `, [6, numId]);
 
+    await pool.execute(
+        `INSERT INTO select_states_detail (case_number,handler,select_state,create_time) VALUES(?,?,?,?)`,
+        [numId, v.handler, '案件進行中', v.receiveTime]
+    );
+
     res.json(getUserTotalFile);
 });
-
-// UPDATE upload_files_detail SET receive_files_time='1' WHERE case_number ='167116505' && 	up_files_time='2022-12-16 12:32:10' && valid='1' && select_state='需補件' && (receive_files_time is null || receive_files_time='')
 
 //下載檔案
 //http://localhost:3001/api/files
