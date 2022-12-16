@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
 });
 
 router.post('/file', async (req, res) => {
-    const arr = Object.values(req.filesreq?.files||{});
+    const arr = Object.values(req?.files || {});
     let v = req.body;
     for (let i = 0; i < arr.length; i++) {
         let uploadPath = __dirname + '/../uploads/' + arr[i].name;
@@ -57,7 +57,7 @@ router.post('/file', async (req, res) => {
             console.log(err);
         }
     }
-    
+
     res.send('ok2');
 });
 

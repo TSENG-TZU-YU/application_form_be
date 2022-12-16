@@ -388,7 +388,7 @@ async function handleRejectCase(req, res) {
 // file
 async function handlePostFile(req, res) {
     const numId = req.params.num;
-    const arr = Object.values(req?.files||{});
+    const arr = Object.values(req?.files || {});
     let v = req.body;
     // 轉換類型名稱
     let [category] = await pool.execute('SELECT * FROM application_category');
