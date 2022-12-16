@@ -15,7 +15,7 @@ router.post('/changeState/:caseNum', appController.handleChangeState);
 
 // post 修改需求
 router.post('/postAddNeed', appController.handlePostNeed);
-router.put('/putAcceptNeed/:num', appController.handleAcceptNeed);
+router.post('/putAcceptNeed/:num', appController.handleAcceptNeed);
 
 // 取消申請
 router.post('/cancleAcc/:num', appController.handleCancleAcc);
