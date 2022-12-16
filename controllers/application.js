@@ -169,8 +169,8 @@ async function getUserIdApp(req, res) {
 
     // file
     let [getFile] = await pool.execute(
-        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && b.valid=0`,
-        [numId]
+        `SELECT a.*,b.create_time FROM upload_files_detail a JOIN application_form b ON a.case_number_id=b.case_number WHERE case_number_id = ? && b.valid=?`,
+        [numId, 0]
     );
 
     res.json({
@@ -334,7 +334,7 @@ async function handleCancleAcc(req, res) {
 async function handleFinish(req, res) {
     const caseNum = req.params.num;
     let id = req.body.caseId;
-    let handler = req.session.member.name
+    let handler = req.session.member.name;
     // console.log(caseNum, id);
 
     let [result] = await pool.execute('UPDATE application_form SET status_id=? WHERE id = ?', [16, id]);
@@ -411,8 +411,8 @@ async function handlePostFile(req, res) {
         });
         try {
             let [files] = await pool.execute(
-                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,2,?)',
-                [numId, arr[i].name, newState.number + v.fileNo + [i], v.create_time]
+                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
+                [numId, arr[i].name, newState.number + v.fileNo + [i], valid, v.create_time]
             );
         } catch (err) {
             console.log(err);

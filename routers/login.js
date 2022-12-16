@@ -24,7 +24,6 @@ router.post('/', async (req, res) => {
             staff_code: user.staff_code,
             job: user.job,
             permissions_id: user.permissions_id,
-           
         };
 
         req.session.member = saveUser;
@@ -55,7 +54,6 @@ router.get('/auth', async (req, res) => {
             staff_code: user.staff_code,
             job: user.job,
             permissions_id: user.permissions_id,
-
         };
 
         req.session.member = saveUser;
