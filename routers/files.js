@@ -78,7 +78,7 @@ router.patch('/acceptFile/:num', async (req, res) => {
     const numId = req.params.num;
     let v = req.body;
     let [getUserTotalFile] = await pool.execute(
-        ` UPDATE upload_files_detail SET receive_files_time=? WHERE case_number =? && create_time=? && valid=?&& select_state=? && (receive_files_time is null || receive_files_time='') `,
+        ` UPDATE upload_files_detail SET receive_files_time=? WHERE case_number=? && up_files_time=? && valid=? && select_state=? && (receive_files_time is null || receive_files_time='') `,
         [v.receiveTime, numId, v.create_time, 1, '需補件']
     );
     await pool.execute(` UPDATE application_form SET status_id=? WHERE case_number = ? `, [6, numId]);
@@ -86,8 +86,8 @@ router.patch('/acceptFile/:num', async (req, res) => {
     res.json(getUserTotalFile);
 });
 
-// UPDATE upload_files_detail SET receive_files_time='1' WHERE case_number =? && create_time=? && valid=?&& select_state=? && (receive_files_time is null || receive_files_time=''
- 
+// UPDATE upload_files_detail SET receive_files_time='1' WHERE case_number='167116247' && up_files_time='2022-12-16 11:48:59' && valid='1' && select_state='需補件' && (receive_files_time is null || receive_files_time='')
+
 //下載檔案
 //http://localhost:3001/api/files
 router.post('/', async (req, res) => {
