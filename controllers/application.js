@@ -24,6 +24,7 @@ async function getAllApp(req, res) {
       JOIN application_form_detail d ON a.case_number = d.case_number_id
       WHERE a.user_id = ? AND a.valid = ?
       GROUP BY d.case_number_id,s.name, u.applicant_unit
+      ORDER BY a.create_time DESC
        `,
         [userId, 0]
     );
