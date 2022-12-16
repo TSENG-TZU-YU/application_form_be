@@ -419,7 +419,7 @@ async function handlePostFile(req, res) {
             console.log(err);
         }
     }
-
+    await pool.execute(`UPDATE select_states_detail SET up_files_time=? WHERE case_number=?`, [v.create_time, numId]);
     res.send('ok2');
 }
 

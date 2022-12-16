@@ -61,7 +61,7 @@ router.get('/getUpdateFile/:num', async (req, res) => {
     const numId = req.params.num;
 
     let [getUserTotalFile] = await pool.execute(
-        `SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a LEFT JOIN select_states_detail b ON a.	create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE c.case_number=? && c.status_id=? && a.valid=?&& b.select_state=? &&(b.receive_files_time is null || b.receive_files_time='')  `,
+        `SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a LEFT JOIN select_states_detail b ON a.	create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE c.case_number=? && c.status_id=? && a.valid=? && b.select_state=? &&(b.receive_files_time is null || b.receive_files_time='')  `,
         [numId, 8, 1, '需補件']
     );
     // let [getUserTotalFile] = await pool.execute(
