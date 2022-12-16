@@ -419,7 +419,11 @@ async function handlePostFile(req, res) {
             console.log(err);
         }
     }
-    await pool.execute(`UPDATE select_states_detail SET up_files_time=? WHERE case_number=?`, [v.create_time, numId]);
+    await pool.execute(`UPDATE select_states_detail SET up_files_time=? WHERE case_number=? && select_state=?`, [
+        v.create_time,
+        numId,
+        '需補件',
+    ]);
     res.send('ok2');
 }
 
