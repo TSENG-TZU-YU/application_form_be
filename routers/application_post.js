@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
         if (checkData.length === 0) {
             let [application] = await pool.execute(
                 `INSERT INTO application_form (case_number,user,user_id,handler,application_category,project_name,cycle,status_id, create_time) VALUES (?,?,?,?,?,?,?,?,?)`,
-                [r.number, r.name, r.id, r.handler, newState.name, r.name, r.cycle, r.status, r.create_time]
+                [r.number, r.user, r.id, r.handler, newState.name, r.name, r.cycle, r.status, r.create_time]
             );
             for (let data of arr) {
                 let [application_detail] = await pool.execute(
