@@ -41,8 +41,9 @@ router.post('/', async (req, res) => {
 router.post('/file', async (req, res) => {
     const arr = Object.values(req?.files || {});
     let v = req.body;
+
     for (let i = 0; i < arr.length; i++) {
-        let uploadPath = __dirname + '/../uploads/' + arr[i].name;
+        let uploadPath = __dirname + `/../${v.time}/${v.number}/` + arr[i].name;
         arr[i].mv(uploadPath, (err) => {
             if (err) {
                 return res.send(err);
