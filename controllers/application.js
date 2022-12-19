@@ -404,6 +404,7 @@ async function handlePostFile(req, res) {
     const numId = req.params.num;
     const arr = Object.values(req?.files || {});
     let v = req.body;
+    let nowDate = moment().format('YYYYMM');
     // 轉換類型名稱
     let [category] = await pool.execute('SELECT * FROM application_category');
     let [newState] = category.filter((d) => {
@@ -411,7 +412,7 @@ async function handlePostFile(req, res) {
     });
 
     for (let i = 0; i < arr.length; i++) {
-        let uploadPath = __dirname + '/../uploads/' + arr[i].name;
+        let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + arr[i].name;
         arr[i].mv(uploadPath, (err) => {
             if (err) {
                 return res.send(err);

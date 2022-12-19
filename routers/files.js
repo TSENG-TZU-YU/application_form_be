@@ -64,7 +64,7 @@ router.get('/getUpdateFile/:num', async (req, res) => {
         `SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a  JOIN select_states_detail b ON a.create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE b.case_number=? && c.status_id=?&& a.valid=?  && b.select_state=? && (b.receive_files_time is null || b.receive_files_time='')  ORDER BY b.create_time DESC LIMIT 1 `,
         [numId, 8, 1, '需補件']
     );
-    // SELECT a.*,b.case_number,b.remark,c.status_id FROM upload_files_detail a LEFT JOIN select_states_detail b ON a.	create_time=b.up_files_time JOIN application_form c ON a.case_number_id=c.case_number WHERE c.case_number='167116822' && c.status_id='8' && a.valid='1' && b.select_state='需補件' &&(b.receive_files_time is null || b.receive_files_time='')  ORDER BY create_time DESC LIMIT 1
+
     res.json(getUserTotalFile);
 });
 
@@ -90,9 +90,11 @@ router.patch('/acceptFile/:num', async (req, res) => {
 
 //下載檔案
 //http://localhost:3001/api/files
-router.post('/', async (req, res) => {
+router.post('/:num', async (req, res) => {
+    const numId = req.params.num;
+    let v = req.body;
     // res.download('uploads/築間.png');
-    let file = __dirname + `/../uploads/${req.body.name}`;
+    let file = __dirname + `/../${v.dbTime}/${numId}/${v.fileNo}${v.name}`;
     res.download(file);
     console.log(req.body.name);
 });

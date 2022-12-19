@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../utils/db');
+const moment = require('moment');
 
 // 處理人
 // http://localhost:3001/api/application_post
@@ -41,9 +42,9 @@ router.post('/', async (req, res) => {
 router.post('/file', async (req, res) => {
     const arr = Object.values(req?.files || {});
     let v = req.body;
-
+    let nowDate = moment().format('YYYYMM');
     for (let i = 0; i < arr.length; i++) {
-        let uploadPath = __dirname + `/../${v.time}/${v.number}/` + arr[i].name;
+        let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + v.fileNo + [i] + arr[i].name;
         arr[i].mv(uploadPath, (err) => {
             if (err) {
                 return res.send(err);
