@@ -379,7 +379,7 @@ async function handleAcceptCase(req, res) {
 // put 拒絕接收轉件
 async function handleRejectCase(req, res) {
     let [v] = req.body;
-    console.log('v', v);
+    console.log('v', v.id);
 
     let [newResult] = await pool.execute(
         `UPDATE application_form SET status_id=?, valid = ?, transfer = ? 
@@ -388,8 +388,8 @@ async function handleRejectCase(req, res) {
     );
 
     let [oldResult] = await pool.execute(
-        'UPDATE application_form SET status_id=?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ? AND id = ?',
-        [4, 0, 0, v.case_number, v.sender, 0, 0, v.id]
+        'UPDATE application_form SET status_id = ?, valid = ?, transfer = ? WHERE case_number = ? AND handler = ? AND  valid = ? AND transfer = ?',
+        [4, 0, 0, v.case_number, v.sender, 0, 0]
     );
 
     addHandleState(v.case_number, v.sender, '申請中', '', '', nowDate);
