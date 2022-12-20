@@ -43,6 +43,7 @@ router.post('/file', async (req, res) => {
     const arr = Object.values(req?.files || {});
     let v = req.body;
     let nowDate = moment().format('YYYYMM');
+
     for (let i = 0; i < arr.length; i++) {
         let uploadPath = __dirname + `/../${nowDate}/${v.number}/` + v.fileNo + [i] + arr[i].name;
         arr[i].mv(uploadPath, (err) => {
@@ -50,13 +51,21 @@ router.post('/file', async (req, res) => {
                 return res.send(err);
             }
         });
-        try {
-            let [files] = await pool.execute(
-                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
-                [v.number, arr[i].name, v.fileNo + [i], 0, v.create_time]
-            );
-        } catch (err) {
-            console.log(err);
+
+        // 限制是否已有檔案
+        let [checkData] = await pool.execute('SELECT * FROM upload_files_detail  WHERE file_no = ? && create_time=?', [
+            v.fileNo + [i],
+            v.create_time,
+        ]);
+        if (checkData.length === 0) {
+            try {
+                let [files] = await pool.execute(
+                    'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
+                    [v.number, arr[i].name, v.fileNo + [i], 0, v.create_time]
+                );
+            } catch (err) {
+                console.log(err);
+            }
         }
     }
 

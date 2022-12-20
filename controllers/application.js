@@ -418,13 +418,21 @@ async function handlePostFile(req, res) {
                 return res.send(err);
             }
         });
-        try {
-            let [files] = await pool.execute(
-                'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
-                [numId, arr[i].name, newState.number + v.fileNo + [i], v.valid, v.create_time]
-            );
-        } catch (err) {
-            console.log(err);
+        
+        // 限制是否已有檔案
+        let [checkData] = await pool.execute('SELECT * FROM upload_files_detail  WHERE file_no = ? && create_time=?', [
+            v.fileNo + [i],
+            v.create_time,
+        ]);
+        if (checkData.length === 0) {
+            try {
+                let [files] = await pool.execute(
+                    'INSERT INTO upload_files_detail (case_number_id,name,file_no,valid,create_time) VALUES (?,?,?,?,?)',
+                    [numId, arr[i].name, newState.number + v.fileNo + [i], v.valid, v.create_time]
+                );
+            } catch (err) {
+                console.log(err);
+            }
         }
     }
     if (v.valid === '1') {
